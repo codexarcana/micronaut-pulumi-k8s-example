@@ -10,7 +10,10 @@ Kubernetes cluster using Pulumi to provision.
     $ curl -fsSL https://get.pulumi.com | sh
   ```
   
-- Log in to Docker hub
+- Log in to Docker hub, Pulumi requires a public image to create the
+  deployment. This repo will push it to whatever repository you are logged
+  in. It must be accessible from your K8s Cluster.
+
   ```bash
   $ docker login
   ```
