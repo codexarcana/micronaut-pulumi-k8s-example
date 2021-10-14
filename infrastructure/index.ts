@@ -1,5 +1,10 @@
 import * as k8s from "@pulumi/kubernetes";
 import * as fs from "fs";
+import * as pulumi from "@pulumi/pulumi";
+
+const config = new pulumi.Config();
+
+const imageName = config.require("image-name");
 
 const appLabels = {
     app: "mnPlusPulumi",
@@ -87,7 +92,7 @@ const deployment = new k8s.apps.v1.Deployment("micronaut-app", {
                 containers: [
                     {
                         name: "micronaut",
-                        image: "eldermael/micronaut-pulumi:0.1",
+                        image: `${imageName}:0.1`,
                         imagePullPolicy: "Always"
                     }
                 ]
