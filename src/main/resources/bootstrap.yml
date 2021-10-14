@@ -1,0 +1,10 @@
+micronaut:
+  application:
+    name: pulumiK8sApp
+  config-client:
+    enabled: true
+kubernetes:
+  client:
+    config-maps:
+      labels:
+        - app: mnPlusPulumi

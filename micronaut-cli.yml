@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: io.eldermael.pulumi.k8s.app
+testFramework: junit
+sourceLanguage: java
+buildTool: gradle
+features: [annotation-api, app-name, config-kubernetes, gradle, http-client, java, java-application, jib, junit, kubernetes, logback, lombok, management, micrometer, micrometer-prometheus, netty-server, readme, shade, yaml]

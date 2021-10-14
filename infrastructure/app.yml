@@ -1,0 +1,6 @@
+io:
+  eldermael:
+    pulumi:
+      app:
+        config:
+          entry: "Hello from Pulumi"
