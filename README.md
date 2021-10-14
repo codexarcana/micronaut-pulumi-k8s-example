@@ -64,7 +64,7 @@ kubectl -n micronaut-pulumi-app port-forward micronaut-app-xxxx-xxxx 8080
 In this case, I use HTTPie to create a request to the server.
 
 ```bash
- http :8080/config
+$ http :8080/config
 HTTP/1.1 200 OK
 Content-Type: application/json
 connection: keep-alive
