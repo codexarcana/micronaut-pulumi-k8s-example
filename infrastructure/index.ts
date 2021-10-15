@@ -2,12 +2,24 @@ import * as k8s from "@pulumi/kubernetes";
 import * as fs from "fs";
 import * as pulumi from "@pulumi/pulumi";
 
+import * as YAML from 'yaml';
+
 const config = new pulumi.Config();
 
 const imageRepositoryName = config.require("image-name");
 
 const appLabels = {
     app: "mnpluspulumi",
+};
+
+const objectConfiguration = {
+    io: {
+        eldermael: {
+            object: {
+                serialized: "Hi, from a TS Object Configuration"
+            }
+        },
+    },
 };
 
 const hostName = config.get('host-name') || "stream.lan";
@@ -71,6 +83,21 @@ const micronautConfiguration = new k8s.core.v1.ConfigMap('micronaut-configmap', 
     },
     data: {
         "app.yml": fs.readFileSync("app.yml").toString(),
+    },
+}, {
+    dependsOn: [
+        applicationNamespace,
+    ],
+});
+
+const micronautYamlConfigurationFromObject = new k8s.core.v1.ConfigMap('micronaut-object-configmap', {
+    metadata: {
+        name: 'micronaut-config-from-object',
+        namespace: applicationNamespace.metadata.name,
+        labels: appLabels,
+    },
+    data: {
+        "object.yml": YAML.stringify(objectConfiguration),
     },
 }, {
     dependsOn: [

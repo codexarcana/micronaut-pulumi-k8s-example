@@ -23,13 +23,16 @@ public class ConfigController {
   @Value("${io.eldermael.pulumi.app.secret.entry}")
   private String secretValue;
 
-  @Get(produces = MediaType.APPLICATION_JSON)
+  @Value("${io.eldermael.object.serialized}")
+  private String configFromObject;
 
+  @Get(produces = MediaType.APPLICATION_JSON)
   public Object config() {
-    return Map.of(
-        "config", this.entryValue,
-        "secret", this.secretValue
-        );
+    return Map.ofEntries(
+        Map.entry("config", this.entryValue),
+        Map.entry("secret", this.secretValue),
+        Map.entry("another_config", this.configFromObject)
+    );
 
   }
 
