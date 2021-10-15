@@ -4,23 +4,26 @@ import * as pulumi from "@pulumi/pulumi";
 
 const config = new pulumi.Config();
 
-const imageName = config.require("image-name");
+const imageRepositoryName = config.require("image-name");
 
 const appLabels = {
     app: "mnpluspulumi",
 };
 
-const appNamespace = new k8s.core.v1.Namespace('app-namespace', {
+const hostName = config.get('host-name') || "stream.lan";
+
+const applicationNamespace = new k8s.core.v1.Namespace('micronaut-namespace', {
     metadata: {
         name: 'micronaut-pulumi-app',
         labels: appLabels,
     }
 });
 
-const appConfigMapAccessRole = new k8s.rbac.v1.Role('micronaut-configmap-role', {
+const serviceDiscovererAccessRole = new k8s.rbac.v1.Role('micronaut-discoverer-role', {
     metadata: {
         name: "service-discoverer",
-        namespace: appNamespace.metadata.name,
+        namespace: applicationNamespace.metadata.name,
+        labels: appLabels,
     },
     rules: [
         {
@@ -31,38 +34,39 @@ const appConfigMapAccessRole = new k8s.rbac.v1.Role('micronaut-configmap-role', 
     ],
 }, {
     dependsOn: [
-        appNamespace,
+        applicationNamespace,
     ],
 });
 
-const appRoleBindingToAccessor = new k8s.rbac.v1.RoleBinding('micronaut-rolebinding', {
+const defaultServiceAccountRoleAssignment = new k8s.rbac.v1.RoleBinding('micronaut-discoverer-rolebinding', {
     metadata: {
         name: 'default-service-discoverer',
-        namespace: appNamespace.metadata.name,
+        namespace: applicationNamespace.metadata.name,
+        labels: appLabels,
     },
     subjects: [
         {
             kind: "ServiceAccount",
             name: "default",
-            namespace: appNamespace.metadata.name,
+            namespace: applicationNamespace.metadata.name,
         }
     ],
     roleRef: {
         kind: "Role",
-        name: appConfigMapAccessRole.metadata.name,
+        name: serviceDiscovererAccessRole.metadata.name,
         apiGroup: "rbac.authorization.k8s.io",
     }
 }, {
     dependsOn: [
-        appNamespace,
-        appConfigMapAccessRole,
+        applicationNamespace,
+        serviceDiscovererAccessRole,
     ],
 });
 
-const appConfig = new k8s.core.v1.ConfigMap('micronaut-configmap', {
+const micronautConfiguration = new k8s.core.v1.ConfigMap('micronaut-configmap', {
     metadata: {
         name: 'micronaut-config',
-        namespace: appNamespace.metadata.name,
+        namespace: applicationNamespace.metadata.name,
         labels: appLabels,
     },
     data: {
@@ -70,14 +74,14 @@ const appConfig = new k8s.core.v1.ConfigMap('micronaut-configmap', {
     },
 }, {
     dependsOn: [
-        appNamespace,
+        applicationNamespace,
     ],
 });
 
-const appSecret = new k8s.core.v1.Secret('micronaut-secret', {
+const micronautSecret = new k8s.core.v1.Secret('micronaut-secret', {
     metadata: {
         name: 'micronaut-secret',
-        namespace: appNamespace.metadata.name,
+        namespace: applicationNamespace.metadata.name,
         labels: appLabels,
     },
     stringData: {
@@ -85,14 +89,15 @@ const appSecret = new k8s.core.v1.Secret('micronaut-secret', {
     },
 }, {
     dependsOn: [
-        appNamespace,
+        applicationNamespace,
     ]
 })
 
-const deployment = new k8s.apps.v1.Deployment("micronaut-app", {
+const micronautDeployment = new k8s.apps.v1.Deployment("micronaut-deployment", {
     metadata: {
         name: 'micronaut-app',
-        namespace: appNamespace.metadata.name,
+        namespace: applicationNamespace.metadata.name,
+        labels: appLabels,
     },
     spec: {
         selector: {
@@ -107,7 +112,7 @@ const deployment = new k8s.apps.v1.Deployment("micronaut-app", {
                 containers: [
                     {
                         name: "micronaut",
-                        image: `${imageName}:0.1`,
+                        image: `${imageRepositoryName}:0.1`,
                         imagePullPolicy: "Always",
                         ports: [
                             {
@@ -123,10 +128,10 @@ const deployment = new k8s.apps.v1.Deployment("micronaut-app", {
     }
 }, {
     dependsOn: [
-        appNamespace,
-        appConfig,
-        appSecret,
-        appRoleBindingToAccessor,
+        micronautSecret,
+        applicationNamespace,
+        micronautConfiguration,
+        defaultServiceAccountRoleAssignment,
     ],
 });
 
@@ -134,7 +139,7 @@ const micronautService = new k8s.core.v1.Service('micronaut-service', {
     metadata: {
         name: 'micronaut-service',
         labels: appLabels,
-        namespace: appNamespace.metadata.name,
+        namespace: applicationNamespace.metadata.name,
     },
     spec: {
         type: "ClusterIP",
@@ -150,9 +155,46 @@ const micronautService = new k8s.core.v1.Service('micronaut-service', {
     }
 }, {
     dependsOn: [
-        appNamespace,
+        applicationNamespace,
+    ],
+});
+
+const micronautIngress = new k8s.networking.v1.Ingress('micronaut-ingress', {
+    metadata: {
+        name: 'micronaut-ingress',
+        labels: appLabels,
+        namespace: applicationNamespace.metadata.name,
+    },
+    spec: {
+        rules: [
+            {
+                host: hostName, // change this to suite your needs :)
+                http: {
+                    paths: [
+                        {
+                            path: "/config",
+                            pathType: "ImplementationSpecific",
+                            backend: {
+                                service: {
+                                    name: micronautService.metadata.name,
+                                    port: {
+                                        number: 80,
+                                    }
+                                },
+                            }
+                        },
+                    ],
+                }
+            }
+        ],
+    }
+
+}, {
+    dependsOn: [
+        micronautService,
     ],
 });
 
 
-export const name = deployment.metadata.name;
+export const ingressHostName = hostName;
+export const deploymentName = micronautDeployment.metadata.name;
