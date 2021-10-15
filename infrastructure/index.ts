@@ -7,7 +7,7 @@ const config = new pulumi.Config();
 const imageName = config.require("image-name");
 
 const appLabels = {
-    app: "mnPlusPulumi",
+    app: "mnpluspulumi",
 };
 
 const appNamespace = new k8s.core.v1.Namespace('app-namespace', {

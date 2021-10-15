@@ -8,7 +8,7 @@ kubernetes:
     secrets:
       enabled: true
       labels:
-        - app: mnPlusPulumi
+        - app: mnpluspulumi
     config-maps:
       labels:
-        - app: mnPlusPulumi
+        - app: mnpluspulumi
