@@ -20,10 +20,17 @@ public class ConfigController {
   @Value("${io.eldermael.pulumi.app.config.entry}")
   private String entryValue;
 
+  @Value("${io.eldermael.pulumi.app.secret.entry}")
+  private String secretValue;
+
   @Get(produces = MediaType.APPLICATION_JSON)
 
   public Object config() {
-    return Map.of("entry", this.entryValue);
+    return Map.of(
+        "config", this.entryValue,
+        "secret", this.secretValue
+        );
+
   }
 
 }

@@ -74,6 +74,21 @@ const appConfig = new k8s.core.v1.ConfigMap('micronaut-configmap', {
     ],
 });
 
+const appSecret = new k8s.core.v1.Secret('micronaut-secret', {
+    metadata: {
+        name: 'micronaut-secret',
+        namespace: appNamespace.metadata.name,
+        labels: appLabels,
+    },
+    stringData: {
+        "io.eldermael.pulumi.app.secret.entry": config.requireSecret('micronaut-secret'),
+    },
+}, {
+    dependsOn: [
+        appNamespace,
+    ]
+})
+
 const deployment = new k8s.apps.v1.Deployment("micronaut-app", {
     metadata: {
         name: 'micronaut-app',
@@ -93,9 +108,16 @@ const deployment = new k8s.apps.v1.Deployment("micronaut-app", {
                     {
                         name: "micronaut",
                         image: `${imageName}:0.1`,
-                        imagePullPolicy: "Always"
+                        imagePullPolicy: "Always",
+                        ports: [
+                            {
+                                protocol: "TCP",
+                                name: "http",
+                                containerPort: 8080,
+                            },
+                        ]
                     }
-                ]
+                ],
             }
         }
     }
@@ -103,7 +125,32 @@ const deployment = new k8s.apps.v1.Deployment("micronaut-app", {
     dependsOn: [
         appNamespace,
         appConfig,
+        appSecret,
         appRoleBindingToAccessor,
+    ],
+});
+
+const micronautService = new k8s.core.v1.Service('micronaut-service', {
+    metadata: {
+        name: 'micronaut-service',
+        labels: appLabels,
+        namespace: appNamespace.metadata.name,
+    },
+    spec: {
+        type: "ClusterIP",
+        selector: appLabels,
+        ports: [
+            {
+                name: "http",
+                protocol: "TCP",
+                port: 80,
+                targetPort: 8080,
+            }
+        ],
+    }
+}, {
+    dependsOn: [
+        appNamespace,
     ],
 });
 

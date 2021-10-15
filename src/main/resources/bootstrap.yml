@@ -5,6 +5,10 @@ micronaut:
     enabled: true
 kubernetes:
   client:
+    secrets:
+      enabled: true
+      labels:
+        - app: mnPlusPulumi
     config-maps:
       labels:
         - app: mnPlusPulumi
