@@ -1,4 +1,4 @@
-## Pulumi (K8s) & Micronaut Example
+# Pulumi (K8s) & Micronaut Example
 
 This is an example of a micronaut application being deployed to a
 Kubernetes cluster using Pulumi to provision. 
@@ -6,7 +6,7 @@ Kubernetes cluster using Pulumi to provision.
 It shows how to provision Micronaut to read ConfigMaps and Secrets
 as properties sources. These will be provisioned as well by Pulumi.
 
-# Requirements
+## Requirements
 
 - Install Pulumi
   ```bash
