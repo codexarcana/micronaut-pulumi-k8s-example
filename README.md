@@ -1,7 +1,10 @@
 ## Pulumi (K8s) & Micronaut Example
 
 This is an example of a micronaut application being deployed to a
-Kubernetes cluster using Pulumi to provision.
+Kubernetes cluster using Pulumi to provision. 
+
+It shows how to provision Micronaut to read ConfigMaps and Secrets
+as properties sources. These will be provisioned as well by Pulumi.
 
 # Requirements
 
@@ -9,6 +12,8 @@ Kubernetes cluster using Pulumi to provision.
   ```bash
     $ curl -fsSL https://get.pulumi.com | sh
   ```
+
+- Create a [Docker hub repository for your image](https://hub.docker.com/repository/create).
   
 - Log in to Docker hub, Pulumi requires a public image to create the
   deployment. This repo will push it to whatever repository you are logged
@@ -25,7 +30,7 @@ Kubernetes cluster using Pulumi to provision.
 
 ## How To Run
 
-- Run the installation script with your image name
+- Run the installation script with your repository name.
 
   ```bash
   $ ./build-and-publish.sh "username/image"
@@ -38,16 +43,27 @@ Then pulumi will use that image to create the required objets:
 $ pulumi up
 Previewing update (dev)
 
-     Type                                                    Name                      Plan       
- +   pulumi:pulumi:Stack                                     pulumi-k8s-app-dev        create     
- +   ├─ kubernetes:core/v1:Namespace                         app-namespace             create     
- +   ├─ kubernetes:core/v1:ConfigMap                         micronaut-configmap       create     
- +   ├─ kubernetes:rbac.authorization.k8s.io/v1:Role         micronaut-configmap-role  create     
- +   ├─ kubernetes:rbac.authorization.k8s.io/v1:RoleBinding  micronaut-rolebinding     create     
- +   └─ kubernetes:apps/v1:Deployment                        micronaut-app             create     
+View Live: ...
+
+     Type                                                    Name                              Plan       
+ +   pulumi:pulumi:Stack                                     pulumi-k8s-app-dev                create     
+ +   ├─ kubernetes:core/v1:Namespace                         micronaut-namespace               create     
+ +   ├─ kubernetes:core/v1:ConfigMap                         micronaut-object-configmap        create     
+ +   ├─ kubernetes:core/v1:ConfigMap                         micronaut-configmap               create     
+ +   ├─ kubernetes:rbac.authorization.k8s.io/v1:Role         micronaut-discoverer-role         create     
+ +   ├─ kubernetes:core/v1:Service                           micronaut-service                 create     
+ +   ├─ kubernetes:core/v1:Secret                            micronaut-secret                  create     
+ +   ├─ kubernetes:rbac.authorization.k8s.io/v1:RoleBinding  micronaut-discoverer-rolebinding  create     
+ +   ├─ kubernetes:networking.k8s.io/v1:Ingress              micronaut-ingress                 create     
+ +   └─ kubernetes:apps/v1:Deployment                        micronaut-deployment              create     
  
 Resources:
-    + 6 to create
+    + 10 to create
+
+Do you want to perform this update?  [Use arrows to move, enter to select, type to filter]
+  yes
+> no
+  details
 
 ```
 
@@ -64,16 +80,19 @@ kubectl -n micronaut-pulumi-app port-forward micronaut-app-xxxx-xxxx 8080
 In this case, I use HTTPie to create a request to the server.
 
 ```bash
-$ http :8080/config
+$ http http://stream.lan/config
 HTTP/1.1 200 OK
+Content-Length: 119
 Content-Type: application/json
-connection: keep-alive
-content-length: 29
-date: Thu, 14 Oct 2021 22:58:03 GMT
+Date: Sat, 16 Oct 2021 15:03:23 GMT
+Vary: Accept-Encoding
 
 {
-    "entry": "Hello from Pulumi"
+    "another_config": "Hi, from a TS Object Configuration",
+    "config": "Hello from Pulumi",
+    "secret": "Hello, this is a secret"
 }
+
 ```
 
 ## Clean Up
