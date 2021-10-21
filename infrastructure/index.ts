@@ -236,6 +236,7 @@ const podMonitor = new monitoring.v1.PodMonitor('micronaut-pod-monitor', {
         },
         podMetricsEndpoints: [
             {
+                path: "/prometheus",
                 port: micronautDeployment.spec.template.spec.containers[0].ports[0].name, // Flaky?
             },
         ],

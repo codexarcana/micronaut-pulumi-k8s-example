@@ -10,3 +10,6 @@ endpoints:
   metrics:
     enabled: true
     sensitive: false
+  prometheus:
+    enabled: true
+    sensitive: false
