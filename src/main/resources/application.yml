@@ -6,3 +6,7 @@ micronaut:
         descriptions: true
         step: PT1M
     enabled: true
+endpoints:
+  metrics:
+    enabled: true
+    sensitive: false

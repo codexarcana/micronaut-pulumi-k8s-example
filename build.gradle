@@ -54,11 +54,7 @@ jib {
 }
 
 dockerBuild {
-    def imageName = System.getProperty("imageName")
-
-    if(!imageName) {
-        throw new Exception("Unable to get image name")
-    }
+    def imageName = System.getProperty("imageName", "eldermael/micronaut-pulumi")
 
     images = ["$imageName:$project.version"]
 }
