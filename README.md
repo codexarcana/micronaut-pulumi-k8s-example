@@ -6,12 +6,19 @@ Kubernetes cluster using Pulumi to provision.
 It shows how to provision Micronaut to read ConfigMaps and Secrets
 as properties sources. These will be provisioned as well by Pulumi.
 
+It also showcases how to use CRDs with Pulumi.
+
 ## Requirements
+
+- A kubernetes cluster with the [Prometheus Operator](https://prometheus-operator.dev/)
 
 - Install Pulumi
   ```bash
     $ curl -fsSL https://get.pulumi.com | sh
   ```
+
+- Install `crd2pulumi` from [here](https://github.com/pulumi/crd2pulumi). This
+  is required to create CRD definitions for Pulumi. 
 
 - Create a [Docker hub repository for your image](https://hub.docker.com/repository/create).
   

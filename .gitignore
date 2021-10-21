@@ -14,3 +14,4 @@ out/
 .factorypath
 node_modules
 infrastructure/Pulumi.*.yaml
+infrastructure/crds

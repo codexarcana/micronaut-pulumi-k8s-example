@@ -3,8 +3,11 @@ import * as fs from "fs";
 import * as pulumi from "@pulumi/pulumi";
 
 import * as YAML from 'yaml';
+import {monitoring} from "./crds/nodejs/";
 
 const config = new pulumi.Config();
+
+
 
 const imageRepositoryName = config.require("image-name");
 
@@ -221,6 +224,28 @@ const micronautIngress = new k8s.networking.v1.Ingress('micronaut-ingress', {
         micronautService,
     ],
 });
+
+const podMonitor = new monitoring.v1.PodMonitor('micronaut-pod-monitor', {
+    metadata: {
+        name: 'micronaut-pod-monitor',
+        namespace: applicationNamespace.metadata.name,
+    },
+    spec: {
+        selector: {
+            matchLabels: appLabels,
+        },
+        podMetricsEndpoints: [
+            {
+                port: micronautDeployment.spec.template.spec.containers[0].ports[0].name, // Flaky?
+            },
+        ],
+    }
+}, {
+    dependsOn: [
+        applicationNamespace,
+    ],
+});
+
 
 
 export const ingressHostName = hostName;
